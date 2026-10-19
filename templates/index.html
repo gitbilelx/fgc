@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ site_name | default('cdn') }}</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #111111;
+      --border: #222222;
+      --border-hover: #3a3a3a;
+      --text: #ededed;
+      --muted: #737373;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: 100%;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 3rem;
+      flex: 1;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+    }
+
+    h1 {
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .count {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.78rem;
+      padding: 6px 26px 6px 10px;
+      border-radius: 7px;
+      width: 190px;
+      outline: none;
+      transition: border-color 0.15s ease, width 0.15s ease;
+    }
+
+    .search-input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-input:focus {
+      border-color: var(--border-hover);
+      width: 230px;
+    }
+
+    .kbd {
+      position: absolute;
+      right: 7px;
+      font-size: 0.65rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 4px;
+      pointer-events: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+    }
+
+    .thumb {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 120px;
+      background: #0d0d0d;
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: zoom-in;
+      border: none;
+      width: 100%;
+    }
+
+    .thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .name {
+      font-size: 0.75rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .size {
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .copy-btn {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 3rem 0;
+      text-align: center;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      z-index: 50;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-inner {
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .lightbox-inner img {
+      max-width: 100%;
+      max-height: 72vh;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0d0d0d;
+    }
+
+    .lightbox-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+    }
+
+    .lightbox-bar span {
+      color: var(--muted);
+      margin-right: 4px;
+    }
+
+    footer {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s ease;
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+
+    footer svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="brand">
+        <h1>{{ site_name | default('cdn') }}</h1>
+        <span class="count">{{ files|length }} asset{{ '' if files|length == 1 else 's' }}</span>
+      </div>
+      <div class="search-wrap">
+        <input
+          type="text"
+          id="search"
+          class="search-input"
+          placeholder="Filter..."
+          autocomplete="off"
+        />
+        <span class="kbd">/</span>
+      </div>
+    </header>
+
+    {% if files %}
+    <div class="grid" id="grid">
+      {% for f in files %}
+      <div class="card" data-name="{{ f.path | lower }}">
+        <button
+          type="button"
+          class="thumb"
+          onclick="openLightbox('{{ f.path }}', '{{ f.size }}', {{ 'true' if f.resizable else 'false' }})"
+        >
+          <img
+            src="/{{ f.path }}{{ '?w=360' if f.resizable else '' }}"
+            alt="{{ f.name }}"
+            loading="lazy"
+          />
+        </button>
+        <div class="meta">
+          <div class="info">
+            <span class="name" title="{{ f.path }}">{{ f.path }}</span>
+            <span class="size">{{ f.size }}</span>
+          </div>
+          <button
+            class="copy-btn"
+            onclick="copyUrl('/{{ f.path }}', this)"
+          >Copy</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No images in <code>images/</code> yet.</p>
+    {% endif %}
+  </main>
+
+  <div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLightbox()">
+    <div class="lightbox-inner">
+      <img id="lb-img" src="" alt="" />
+      <div class="lightbox-bar">
+        <span id="lb-meta"></span>
+        <button class="copy-btn" id="lb-copy-raw">Copy URL</button>
+        <button class="copy-btn" id="lb-copy-opt" style="display:none">Copy ?w=512</button>
+        <button class="copy-btn" id="lb-copy-img">Copy &lt;img&gt;</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a href="{{ github_url | default('https://github.com/your-username/your-repo') }}" target="_blank" rel="noopener" aria-label="GitHub repository">
+      <span>Built with</span>
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+    </a>
+  </footer>
+
+  <script>
+    const search = document.getElementById('search');
+    const cards = document.querySelectorAll('.card');
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== search) {
+        e.preventDefault();
+        search.focus();
+      } else if (e.key === 'Escape') {
+        closeLightbox();
+        search.blur();
+      }
+    });
+
+    if (search) {
+      search.addEventListener('input', () => {
+        const q = search.value.toLowerCase().trim();
+        cards.forEach(c => {
+          c.style.display = !q || c.dataset.name.includes(q) ? 'flex' : 'none';
+        });
+      });
+    }
+
+    function copyText(text, btn, label) {
+      navigator.clipboard.writeText(text);
+      const orig = label || btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => (btn.textContent = orig), 1200);
+    }
+
+    function copyUrl(path, btn) {
+      copyText(window.location.origin + path, btn, 'Copy');
+    }
+
+    function openLightbox(path, size, resizable) {
+      const lb = document.getElementById('lightbox');
+      const fullUrl = window.location.origin + '/' + path;
+      document.getElementById('lb-img').src = '/' + path;
+      document.getElementById('lb-meta').textContent = `${path} (${size})`;
+
+      const rawBtn = document.getElementById('lb-copy-raw');
+      rawBtn.onclick = () => copyText(fullUrl, rawBtn, 'Copy URL');
+
+      const optBtn = document.getElementById('lb-copy-opt');
+      if (resizable) {
+        optBtn.style.display = 'inline-block';
+        optBtn.onclick = () => copyText(fullUrl + '?w=512', optBtn, 'Copy ?w=512');
+      } else {
+        optBtn.style.display = 'none';
+      }
+
+      const imgBtn = document.getElementById('lb-copy-img');
+      imgBtn.onclick = () => copyText(`<img src="${fullUrl}" alt="${path}">`, imgBtn, 'Copy <img>');
+
+      lb.classList.add('open');
+    }
+
+    function closeLightbox() {
+      const lb = document.getElementById('lightbox');
+      lb.classList.remove('open');
+      document.getElementById('lb-img').src = '';
+    }
+  </script>
+</body>
+</html>
